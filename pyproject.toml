@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytest-flaky-detective"
+version = "0.1.0"
+description = "A pytest plugin to detect flaky tests"
+authors = [{ name = "Amit Kurmoli", email = "amitkurmoli79@gmail.com" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pytest>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.entry-points."pytest11"]
+pytest_flaky_detective = "pytest_flaky_detective.plugin"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "W","F", "I", "ARG"]
+
+[tool.mypy]
+strict = true
+packages = ["pytest_flaky_detective"]
