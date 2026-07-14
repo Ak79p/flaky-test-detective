@@ -4,6 +4,7 @@ import pluggy
 import pytest
 from pytest import CallInfo, Config, Item, Parser, TestReport
 
+from pytest_flaky_detective.classifier import Classification, TestClassifier
 from pytest_flaky_detective.collector import SessionCollector
 
 
@@ -28,7 +29,6 @@ def pytest_addoption(parser: Parser) -> None:
 
 def pytest_configure(config: Config) -> None:
     """Initialize and attach the collector to the pytest session configuration."""
-    # Use a unique namespaced attribute name to prevent collision with other plugins
     config.flaky_detective_collector = SessionCollector()  # type: ignore[attr-defined]
 
 @pytest.hookimpl(hookwrapper=True)
@@ -52,16 +52,31 @@ def pytest_sessionfinish(
     session: pytest.Session,
     exitstatus: int,  # noqa: ARG001
 ) -> None:
-    """Render the final summary from data stored in the collector."""
+    """Render the final classified summary from data stored in the collector."""
     collector: SessionCollector = session.config.flaky_detective_collector  # type: ignore[attr-defined]
     tests = collector.all_tests()
 
+    # Initialize summary counters using our Classification Enum keys
+    counts = {
+        Classification.PASS: 0,
+        Classification.BROKEN: 0,
+        Classification.FLAKY: 0,
+    }
+
     print("\n" + "=" * 16 + " Flaky Detective " + "=" * 16)
-    print(f"Collected Tests : {len(tests)}")
 
     for test in tests:
         if test.attempts:
-            latest = test.latest_attempt
+            # Call the static method directly
+            classification = TestClassifier.classify(test)
+            counts[classification] += 1
+
             print(f"\n{test.nodeid}")
-            print(f"Outcome : {latest.outcome}")
-            print(f"Attempts: {len(test.attempts)}")
+            print(f"Classification : {classification.value}")
+            print(f"Attempts       : {len(test.attempts)}")
+
+    print("\n" + "-" * 49)
+    print(f"PASS    : {counts[Classification.PASS]}")
+    print(f"BROKEN  : {counts[Classification.BROKEN]}")
+    print(f"FLAKY   : {counts[Classification.FLAKY]}")
+    print("=" * 49)
