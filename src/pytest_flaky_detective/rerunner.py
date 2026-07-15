@@ -1,5 +1,6 @@
 import subprocess
 import time
+
 from pytest_flaky_detective.collector import SessionCollector
 
 
@@ -11,7 +12,8 @@ class RerunEngine:
         collector: SessionCollector,
         rerun_limit: int,
     ) -> None:
-        """Identify and execute a batch of isolated reruns for failed tests up to the rerun limit.
+        """Identify and execute a batch of isolated reruns for failed/
+          tests up to the rerun limit.
 
         Spawns a clean pytest subprocess for each failed test to guarantee
         perfect test isolation and prevent in-process state/fixture contamination.
