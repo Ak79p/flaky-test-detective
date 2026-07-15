@@ -1,7 +1,6 @@
 ![Python](https://img.shields.io/badge/python-3.12+-blue)
 ![Pytest](https://img.shields.io/badge/pytest-plugin-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![CI](https://github.com/Ak79p/flaky-test-detective/.github/workflows/test.yml/badge.svg)
 
 # pytest-flaky-detective
 
