@@ -1,4 +1,5 @@
 import pytest
+
 from pytest_flaky_detective.classifier import Classification, TestClassifier
 from pytest_flaky_detective.models import AttemptResult, TestHistory
 

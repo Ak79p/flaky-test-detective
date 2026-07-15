@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "summary": {
+    "pass": 1,
+    "broken": 1,
+    "flaky": 1
+  },
+  "tests": [
+    {
+      "nodeid": "tests/test_demo.py::test_pass",
+      "classification": "PASS",
+      "attempts": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "duration": 0.0001
+        }
+      ]
+    },
+    {
+      "nodeid": "tests/test_demo.py::test_fail",
+      "classification": "BROKEN",
+      "attempts": [
+        {
+          "attempt": 1,
+          "outcome": "failed",
+          "duration": 0.0002
+        },
+        {
+          "attempt": 2,
+          "outcome": "failed",
+          "duration": 0.4009
+        },
+        {
+          "attempt": 3,
+          "outcome": "failed",
+          "duration": 0.387
+        }
+      ]
+    },
+    {
+      "nodeid": "tests/test_demo.py::test_flaky",
+      "classification": "FLAKY",
+      "attempts": [
+        {
+          "attempt": 1,
+          "outcome": "failed",
+          "duration": 0.0002
+        },
+        {
+          "attempt": 2,
+          "outcome": "failed",
+          "duration": 0.3828
+        },
+        {
+          "attempt": 3,
+          "outcome": "passed",
+          "duration": 0.3129
+        }
+      ]
+    }
+  ]
+}

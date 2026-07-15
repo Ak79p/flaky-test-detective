@@ -56,16 +56,25 @@ def pytest_sessionfinish(
     session: pytest.Session,
     exitstatus: int,  # noqa: ARG001
 ) -> None:
-    """Render the final classified summary after running out-of-process reruns."""
+    """Orchestrate rerun executions, print summary metrics, and generate report /
+    artifacts."""
     collector: SessionCollector = session.config.flaky_detective_collector  # type: ignore[attr-defined]
 
     # Retrieve configurations and calculate limits
     flaky_runs = int(session.config.getoption("--flaky-runs"))
+    report_path = str(session.config.getoption("--flaky-report"))
     rerun_limit = flaky_runs - 1
 
-    # Delegate rerun execution completely to the RerunEngine
+    # 1. Execute reruns if configured and failures exist
     if rerun_limit > 0:
         RerunEngine.rerun_failed_tests(collector, rerun_limit)
 
-    # Delegate reporting formatting completely to the ConsoleReporter
-    ConsoleReporter.render(collector)
+    # Extract clean domain list from our collector
+    tests = collector.all_tests()
+
+    # 2. Render console output summary
+    ConsoleReporter.render(tests)
+
+    # 3. Generate CI-consumable JSON artifact
+    from pytest_flaky_detective.json_writer import JsonReportWriter
+    JsonReportWriter.write(tests, report_path)

@@ -1,4 +1,5 @@
 from enum import Enum
+
 from pytest_flaky_detective.models import TestHistory
 
 

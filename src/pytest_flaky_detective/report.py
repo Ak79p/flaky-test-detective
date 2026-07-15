@@ -1,18 +1,18 @@
 from pytest_flaky_detective.classifier import Classification, TestClassifier
-from pytest_flaky_detective.collector import SessionCollector
+from pytest_flaky_detective.models import TestHistory
 
 
 class ConsoleReporter:
-    """Handles parsing test records and rendering analytical summaries to the console."""
+    """Handles parsing test records and rendering analytical summaries to /
+    the console."""
 
     @staticmethod
-    def render(collector: SessionCollector) -> None:
-        """Analyze histories in the collector and format a clean terminal summary.
+    def render(tests: list[TestHistory]) -> None:
+        """Analyze a list of test execution histories and format a clean /
+        terminal summary.
 
-        Includes an explicit numbered visual trace for multi-attempt histories.
+        Accepts a raw list of histories to minimize architectural coupling.
         """
-        tests = collector.all_tests()
-
         counts = {
             Classification.PASS: 0,
             Classification.BROKEN: 0,
