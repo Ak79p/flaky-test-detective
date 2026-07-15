@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True)
 class AttemptResult:
     """Represents the execution outcome and duration of a single test attempt."""
+    attempt_number: int
     outcome: str
     duration: float
 

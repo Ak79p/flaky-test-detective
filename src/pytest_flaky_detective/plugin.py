@@ -1,12 +1,11 @@
 from collections.abc import Generator
-
 import pluggy
 import pytest
 from pytest import CallInfo, Config, Item, Parser, TestReport
 
 from pytest_flaky_detective.classifier import Classification, TestClassifier
 from pytest_flaky_detective.collector import SessionCollector
-
+from pytest_flaky_detective.rerunner import RerunEngine
 
 def pytest_addoption(parser: Parser) -> None:
     """Register Flaky Detective command-line options."""
@@ -23,8 +22,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="store",
         default="flaky-report.json",
         type=str,
-        help="Path to generate the flaky tests summary JSON report /"
-        "(default: flaky-report.json)"
+        help="Path to generate the flaky tests summary JSON report (default: flaky-report.json)"
     )
 
 def pytest_configure(config: Config) -> None:
@@ -39,7 +37,7 @@ def pytest_runtest_makereport(
     """Hook wrapper to safely observe test outcomes during the call phase."""
     outcome = yield
     report: TestReport = outcome.get_result()
-
+    
     if report.when == "call":
         collector: SessionCollector = item.config.flaky_detective_collector  # type: ignore[attr-defined]
         collector.record(
@@ -52,31 +50,41 @@ def pytest_sessionfinish(
     session: pytest.Session,
     exitstatus: int,  # noqa: ARG001
 ) -> None:
-    """Render the final classified summary from data stored in the collector."""
+    """Render the final classified summary after running out-of-process reruns."""
     collector: SessionCollector = session.config.flaky_detective_collector  # type: ignore[attr-defined]
+    
+    # Retrieve configurations and calculate limits
+    flaky_runs = int(session.config.getoption("--flaky-runs"))
+    rerun_limit = flaky_runs - 1
+    
+    # Delegate rerun logic completely to the RerunEngine
+    if rerun_limit > 0:
+        RerunEngine.rerun_failed_tests(collector, rerun_limit)
+
+    # ------------------ Reporting & Analysis ------------------
     tests = collector.all_tests()
 
-    # Initialize summary counters using our Classification Enum keys
     counts = {
         Classification.PASS: 0,
         Classification.BROKEN: 0,
         Classification.FLAKY: 0,
     }
 
-    print("\n" + "=" * 16 + " Flaky Detective " + "=" * 16)
-
+    print("\n" + "=" * 16 + " Flaky Detective Summary " + "=" * 16)
+    
     for test in tests:
         if test.attempts:
-            # Call the static method directly
             classification = TestClassifier.classify(test)
             counts[classification] += 1
 
             print(f"\n{test.nodeid}")
             print(f"Classification : {classification.value}")
             print(f"Attempts       : {len(test.attempts)}")
+            for attempt in test.attempts:
+                print(f"  - Attempt {attempt.attempt_number}: {attempt.outcome.upper()} ({attempt.duration:.3f}s)")
 
-    print("\n" + "-" * 49)
+    print("\n" + "-" * 57)
     print(f"PASS    : {counts[Classification.PASS]}")
     print(f"BROKEN  : {counts[Classification.BROKEN]}")
     print(f"FLAKY   : {counts[Classification.FLAKY]}")
-    print("=" * 49)
+    print("=" * 57)
