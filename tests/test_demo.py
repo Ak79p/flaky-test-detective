@@ -1,15 +1,18 @@
-import time
+import random
 
 
 def test_pass() -> None:
-    """A test that always passes."""
+    """A reliably passing test."""
     assert True
+
 
 def test_fail() -> None:
-    """A test that always fails."""
+    """A reliably broken test."""
     assert False
 
-def test_slow() -> None:
-    """A test that simulates an operation taking noticeable time."""
-    time.sleep(0.20)
-    assert True
+
+def test_flaky() -> None:
+    """An unstable, intermittent test to verify Flaky classification."""
+    # This will randomly fail or pass, allowing us to exercise the
+    # Flaky Detective multi-run capture and classification logic!
+    assert random.random() > 0.5

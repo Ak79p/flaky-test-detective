@@ -3,12 +3,14 @@ from pytest_flaky_detective.collector import SessionCollector
 
 
 class ConsoleReporter:
-    """Handles parsing test records and rendering analytical summaries to the console./
-    """
+    """Handles parsing test records and rendering analytical summaries to the console."""
 
     @staticmethod
     def render(collector: SessionCollector) -> None:
-        """Analyze histories in the collector and format a clean terminal summary."""
+        """Analyze histories in the collector and format a clean terminal summary.
+
+        Includes an explicit numbered visual trace for multi-attempt histories.
+        """
         tests = collector.all_tests()
 
         counts = {
@@ -24,14 +26,18 @@ class ConsoleReporter:
                 classification = TestClassifier.classify(test)
                 counts[classification] += 1
 
+                # Build a chronological visual trace using explicit attempt numbers
+                # e.g., "1: FAILED, 2: FAILED, 3: PASSED"
+                trace_elements = [
+                    f"{attempt.attempt_number}: {attempt.outcome.upper()}"
+                    for attempt in test.attempts
+                ]
+                history_trace = ", ".join(trace_elements)
+
                 print(f"\n{test.nodeid}")
                 print(f"Classification : {classification.value}")
+                print(f"History        : {history_trace}")
                 print(f"Attempts       : {len(test.attempts)}")
-                for attempt in test.attempts:
-                    print(
-                        f"  - Attempt {attempt.attempt_number}: "
-                        f"{attempt.outcome.upper()} ({attempt.duration:.3f}s)"
-                    )
 
         print("\n" + "-" * 57)
         print(f"PASS    : {counts[Classification.PASS]}")
