@@ -1,0 +1,41 @@
+name: Test Suite & Flaky Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests & Generate Reports
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-level: '3.11'
+          cache: 'pip'
+
+      - name: Install Project & Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev] || pip install -e .
+
+      - name: Run Quality Verification Suite
+        run: |
+          # Executes tests with a 3-run limit and creates the JSON report
+          python -m pytest --flaky-runs=3 --flaky-report=flaky-report.json -v
+
+      - name: Upload Flaky Detective Artifact
+        uses: actions/upload-artifact@v4
+        if: always() # Guarantees the report uploads even if tests fail
+        with:
+          name: flaky-detective-report
+          path: flaky-report.json
+          if-no-files-found: warn
+          retention-days: 14
